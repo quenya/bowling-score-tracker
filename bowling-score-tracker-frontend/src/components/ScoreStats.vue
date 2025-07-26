@@ -50,16 +50,18 @@ const chartOptions = ref({
       labels: {
         color: '#333333',
         font: {
-          size: 12
-        }
+          size: 11
+        },
+        boxWidth: 15,
+        padding: 10
       }
     },
     title: { 
       display: true, 
-      text: '날짜별 점수 추이 (평균선 포함)',
+      text: '날짜별 점수 추이 및 3게임 평균',
       color: '#333333',
       font: {
-        size: 14
+        size: 13
       }
     }
   },
@@ -68,8 +70,11 @@ const chartOptions = ref({
       ticks: {
         color: '#666666',
         font: {
-          size: 10
-        }
+          size: 9
+        },
+        maxRotation: 45,
+        minRotation: 45,
+        maxTicksLimit: 8
       },
       grid: {
         color: '#e0e0e0'
@@ -79,13 +84,29 @@ const chartOptions = ref({
       ticks: {
         color: '#666666',
         font: {
-          size: 10
+          size: 9
         }
       },
       grid: {
         color: '#e0e0e0'
       }
     }
+  },
+  elements: {
+    point: {
+      radius: 3
+    },
+    line: {
+      borderWidth: 2
+    }
+  },
+  animation: {
+    duration: 2000,
+    easing: 'easeInOutQuart'
+  },
+  interaction: {
+    intersect: false,
+    mode: 'index'
   }
 });
 
@@ -104,9 +125,8 @@ const fetchStats = async () => {
     const game1Arr = [];
     const game2Arr = [];
     const game3Arr = [];
-    const avg1TrendArr = [];
-    const avg2TrendArr = [];
-    const avg3TrendArr = [];
+    const dailyAvgArr = []; // 날짜별 3게임 평균
+    
     data.forEach((row, idx) => {
       sum1 += row.game1_score;
       sum2 += row.game2_score;
@@ -117,14 +137,17 @@ const fetchStats = async () => {
       if (row.game2_score > max2) max2 = row.game2_score;
       if (row.game3_score > max3) max3 = row.game3_score;
       if (total > maxTotal) maxTotal = total;
+      
       labels.push(row.played_at);
       game1Arr.push(row.game1_score);
       game2Arr.push(row.game2_score);
       game3Arr.push(row.game3_score);
-      avg1TrendArr.push((sum1 / (idx + 1)).toFixed(1));
-      avg2TrendArr.push((sum2 / (idx + 1)).toFixed(1));
-      avg3TrendArr.push((sum3 / (idx + 1)).toFixed(1));
+      
+      // 해당 날짜의 3게임 평균
+      const dailyAvg = ((row.game1_score + row.game2_score + row.game3_score) / 3).toFixed(1);
+      dailyAvgArr.push(Number(dailyAvg));
     });
+    
     const n = data.length;
     avg.value = {
       game1: (sum1 / n).toFixed(1),
@@ -138,89 +161,62 @@ const fetchStats = async () => {
       game3: max3,
       total: maxTotal
     };
-    // 평균선 데이터
-    const avg1Arr = Array(n).fill(Number(avg.value.game1));
-    const avg2Arr = Array(n).fill(Number(avg.value.game2));
-    const avg3Arr = Array(n).fill(Number(avg.value.game3));
+    
     chartData.value = {
       labels,
       datasets: [
         {
           label: '1게임',
           data: game1Arr,
-          borderColor: '#42b983',
-          backgroundColor: '#42b98333',
-          tension: 0.2
+          borderColor: 'rgba(66, 185, 131, 0.7)',
+          backgroundColor: 'rgba(66, 185, 131, 0.1)',
+          tension: 0.2,
+          borderWidth: 2,
+          pointRadius: 3,
+          order: 1
         },
         {
           label: '2게임',
           data: game2Arr,
-          borderColor: '#ff9800',
-          backgroundColor: '#ff980033',
-          tension: 0.2
+          borderColor: 'rgba(255, 152, 0, 0.7)',
+          backgroundColor: 'rgba(255, 152, 0, 0.1)',
+          tension: 0.2,
+          borderWidth: 2,
+          pointRadius: 3,
+          order: 2
         },
         {
           label: '3게임',
           data: game3Arr,
-          borderColor: '#2196f3',
-          backgroundColor: '#2196f333',
-          tension: 0.2
-        },
-        // 전체 평균선(점선)
-        {
-          label: '1게임 전체 평균',
-          data: avg1Arr,
-          borderColor: '#388e3c',
-          borderDash: [6, 6],
-          pointRadius: 0,
+          borderColor: 'rgba(33, 150, 243, 0.7)',
+          backgroundColor: 'rgba(33, 150, 243, 0.1)',
+          tension: 0.2,
           borderWidth: 2,
-          fill: false,
+          pointRadius: 3,
+          order: 3
         },
         {
-          label: '2게임 전체 평균',
-          data: avg2Arr,
-          borderColor: '#f57c00',
-          borderDash: [6, 6],
-          pointRadius: 0,
-          borderWidth: 2,
+          label: '날짜별 3게임 평균',
+          data: dailyAvgArr,
+          borderColor: '#e91e63',
+          backgroundColor: 'rgba(233, 30, 99, 0.1)',
+          borderWidth: 4,
+          tension: 0.3,
+          pointRadius: 6,
+          pointBackgroundColor: '#e91e63',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 3,
+          pointHoverRadius: 8,
+          pointHoverBackgroundColor: '#c2185b',
+          pointHoverBorderColor: '#ffffff',
+          pointHoverBorderWidth: 3,
+          borderDash: [5, 3],
           fill: false,
-        },
-        {
-          label: '3게임 전체 평균',
-          data: avg3Arr,
-          borderColor: '#1976d2',
-          borderDash: [6, 6],
-          pointRadius: 0,
-          borderWidth: 2,
-          fill: false,
-        },
-        // 날짜별 누적 평균(추이)
-        {
-          label: '1게임 날짜별 평균 추이',
-          data: avg1TrendArr,
-          borderColor: '#388e3c',
-          borderDash: [2, 8],
-          pointRadius: 0,
-          borderWidth: 3,
-          fill: false,
-        },
-        {
-          label: '2게임 날짜별 평균 추이',
-          data: avg2TrendArr,
-          borderColor: '#f57c00',
-          borderDash: [2, 8],
-          pointRadius: 0,
-          borderWidth: 3,
-          fill: false,
-        },
-        {
-          label: '3게임 날짜별 평균 추이',
-          data: avg3TrendArr,
-          borderColor: '#1976d2',
-          borderDash: [2, 8],
-          pointRadius: 0,
-          borderWidth: 3,
-          fill: false,
+          order: 0,
+          shadowOffsetX: 3,
+          shadowOffsetY: 3,
+          shadowBlur: 6,
+          shadowColor: 'rgba(233, 30, 99, 0.3)'
         }
       ]
     };
@@ -256,6 +252,8 @@ watch(() => props.refreshKey, fetchStats);
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #e0e0e0;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 @media (max-width: 600px) {
   .stats-box {
@@ -264,11 +262,13 @@ watch(() => props.refreshKey, fetchStats);
     font-size: 0.95rem;
   }
   .chart-box {
-    max-width: calc(100vw - 2rem);
-    height: 280px;
+    max-width: calc(100vw - 3rem);
+    width: calc(100vw - 3rem);
+    height: 300px;
     min-width: 0;
-    padding: 12px;
-    margin: 0 1rem;
+    padding: 8px;
+    margin: 0 0.5rem;
+    overflow-x: hidden;
   }
   .avg-highlight {
     font-size: 1.1rem;
