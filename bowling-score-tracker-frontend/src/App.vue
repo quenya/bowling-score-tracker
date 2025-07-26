@@ -13,9 +13,9 @@ const handleSaved = () => {
 <template>
   <div class="container">
     <h1>볼링 점수 트래커</h1>
-    <ScoreStats />
-    <ScoreInputForm />
-    <ScoreList />
+    <ScoreStats :key="`stats-${refreshKey}`" />
+    <ScoreInputForm @saved="handleSaved" />
+    <ScoreList :key="`list-${refreshKey}`" />
   </div>
 </template>
 
