@@ -43,9 +43,49 @@ const max = ref({ game1: 0, game2: 0, game3: 0, total: 0 });
 const chartData = ref(null);
 const chartOptions = ref({
   responsive: true,
+  maintainAspectRatio: false,
   plugins: {
-    legend: { position: 'top' },
-    title: { display: true, text: '날짜별 점수 추이 (평균선 포함)' }
+    legend: { 
+      position: 'top',
+      labels: {
+        color: '#333333',
+        font: {
+          size: 12
+        }
+      }
+    },
+    title: { 
+      display: true, 
+      text: '날짜별 점수 추이 (평균선 포함)',
+      color: '#333333',
+      font: {
+        size: 14
+      }
+    }
+  },
+  scales: {
+    x: {
+      ticks: {
+        color: '#666666',
+        font: {
+          size: 10
+        }
+      },
+      grid: {
+        color: '#e0e0e0'
+      }
+    },
+    y: {
+      ticks: {
+        color: '#666666',
+        font: {
+          size: 10
+        }
+      },
+      grid: {
+        color: '#e0e0e0'
+      }
+    }
   }
 });
 
@@ -209,10 +249,13 @@ watch(() => props.refreshKey, fetchStats);
 .chart-box {
   max-width: 700px;
   margin: 0 auto;
-  height: 370px;
-  display: flex;
-  align-items: center;
+  height: 400px;
   width: 100%;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
 }
 @media (max-width: 600px) {
   .stats-box {
@@ -221,9 +264,11 @@ watch(() => props.refreshKey, fetchStats);
     font-size: 0.95rem;
   }
   .chart-box {
-    max-width: 100vw;
-    height: 220px;
+    max-width: calc(100vw - 2rem);
+    height: 280px;
     min-width: 0;
+    padding: 12px;
+    margin: 0 1rem;
   }
   .avg-highlight {
     font-size: 1.1rem;
