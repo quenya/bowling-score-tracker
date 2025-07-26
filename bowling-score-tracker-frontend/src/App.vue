@@ -5,16 +5,20 @@ import ScoreList from './components/ScoreList.vue'
 import ScoreStats from './components/ScoreStats.vue'
 
 const refreshKey = ref(0);
+
 const handleSaved = () => {
   refreshKey.value++;
 };
+
+// TypeScript가 함수 사용을 인식하도록 명시적으로 참조
+const onSaved = handleSaved;
 </script>
 
 <template>
   <div class="container">
     <h1>볼링 점수 트래커</h1>
     <ScoreStats :key="`stats-${refreshKey}`" />
-    <ScoreInputForm @saved="handleSaved" />
+    <ScoreInputForm @saved="onSaved" />
     <ScoreList :key="`list-${refreshKey}`" />
   </div>
 </template>
